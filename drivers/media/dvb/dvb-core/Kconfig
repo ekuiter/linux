@@ -1,0 +1,7 @@
+config DVB_CORE
+	tristate "DVB Core Support"
+	depends on DVB
+	help
+	  DVB core utility functions for device handling, software fallbacks etc.
+
+	  Say Y when you have a DVB card and want to use it. If unsure say N.
