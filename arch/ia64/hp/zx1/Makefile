@@ -1,0 +1,9 @@
+#
+# ia64/hp/zx1/Makefile
+#
+# Copyright (C) 2002 Hewlett Packard
+# Copyright (C) Alex Williamson (alex_williamson@hp.com)
+#
+
+obj-y := hpzx1_misc.o
+obj-$(CONFIG_IA64_GENERIC) += hpzx1_machvec.o
