@@ -1,0 +1,418 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+mainmenu "Linux Kernel Configuration"
+
+config ARM
+	bool
+	default y
+
+config ARM26
+	bool
+	default y
+
+config MMU
+	bool
+	default y
+
+config ARCH_ACORN
+        bool
+        default y
+
+config CPU_26
+        bool
+        default y
+
+config FIQ
+        bool
+        default y
+
+# 9 = 512 pages 8 = 256 pages 7 = 128 pages
+config FORCE_MAX_ZONEORDER
+        int
+        default 9
+
+config UID16
+	bool
+	default y
+
+config RWSEM_GENERIC_SPINLOCK
+	bool
+	default y
+
+config RWSEM_XCHGADD_ALGORITHM
+	bool
+
+config GENERIC_BUST_SPINLOCK
+	bool
+
+config GENERIC_ISA_DMA
+	bool
+
+source "init/Kconfig"
+
+
+menu "System Type"
+
+comment "Archimedes/A5000 Implementations (select only ONE)"
+
+config ARCH_ARC
+        bool "Archimedes"
+        help
+          Say Y to support the Acorn Archimedes.
+	  
+	  The Acorn Archimedes was an personal computer based on an 8MHz ARM2
+          processor, released in 1987.  It supported up to 16MB of RAM in
+	  later models and floppy, harddisc, ethernet etc.
+
+config ARCH_A5K
+        bool "A5000"
+        help
+          Say Y here to to support the Acorn A5000.
+	  
+	  Linux can support the
+          internal IDE disk and CD-ROM interface, serial and parallel port,
+          and the floppy drive.  Note that on some A5000s the floppy is
+          plugged into the wrong socket on the motherboard.
+
+config PAGESIZE_16
+        bool "2MB physical memory (broken)"
+        help
+          Say Y here if your Archimedes or A5000 system has only 2MB of
+          memory, otherwise say N.  The resulting kernel will not run on a
+          machine with 4MB of memory.
+endmenu
+
+menu "General setup"
+
+# Compressed boot loader in ROM.  Yes, we really want to ask about
+# TEXT and BSS so we preserve their values in the config files.
+config ZBOOT_ROM
+	bool "Compressed boot loader in ROM/flash"
+	help
+	  Say Y here if you intend to execute your compressed kernel image (zImage)
+	  directly from ROM or flash.  If unsure, say N.
+
+config ZBOOT_ROM_TEXT
+	hex "Compressed ROM boot loader base address"
+	default "0"
+	help
+	  The base address for zImage.  Unless you have special requirements, you
+	  should not change this value.
+
+config ZBOOT_ROM_BSS
+	hex "Compressed ROM boot loader BSS address"
+	default "0"
+	help
+	  The base address of 64KiB of read/write memory, which must be available
+	  while the decompressor is running.  Unless you have special requirements,
+	  you should not change this value.
+
+config HOTPLUG
+	bool "Support for hot-pluggable devices"
+	---help---
+	  Say Y here if you want to plug devices into your computer while
+	  the system is running, and be able to use them quickly.  In many
+	  cases, the devices can likewise be unplugged at any time too.
+
+	  One well known example of this is PCMCIA- or PC-cards, credit-card
+	  size devices such as network cards, modems or hard drives which are
+	  plugged into slots found on all modern laptop computers.  Another
+	  example, used on modern desktops as well as laptops, is USB.
+
+	  Enable HOTPLUG and KMOD, and build a modular kernel.  Get agent
+	  software (at <http://linux-hotplug.sourceforge.net/>) and install it.
+	  Then your kernel will automatically call out to a user mode "policy
+	  agent" (/sbin/hotplug) to load modules and set up software needed
+	  to use devices as you hotplug them.
+
+comment "At least one math emulation must be selected"
+
+config FPE_NWFPE
+	tristate "NWFPE math emulation"
+	---help---
+	  Say Y to include the NWFPE floating point emulator in the kernel.
+	  This is necessary to run most binaries. Linux does not currently
+	  support floating point hardware so you need to say Y here even if
+	  your machine has an FPA or floating point co-processor podule.
+
+	  It is also possible to say M to build the emulator as a module
+	  (nwfpe) or indeed to leave it out altogether. However, unless you
+	  know what you are doing this can easily render your machine
+	  unbootable. Saying Y is the safe option.
+
+	  You may say N here if you are going to load the Acorn FPEmulator
+	  early in the bootup.
+
+choice
+	prompt "Kernel core (/proc/kcore) format"
+	default KCORE_ELF
+
+config KCORE_ELF
+	bool "ELF"
+	---help---
+	  If you enabled support for /proc file system then the file
+	  /proc/kcore will contain the kernel core image. This can be used
+	  in gdb:
+
+	  $ cd /usr/src/linux ; gdb vmlinux /proc/kcore
+
+	  You have two choices here: ELF and A.OUT. Selecting ELF will make
+	  /proc/kcore appear in ELF core format as defined by the Executable
+	  and Linking Format specification. Selecting A.OUT will choose the
+	  old "a.out" format which may be necessary for some old versions
+	  of binutils or on some architectures.
+
+	  This is especially useful if you have compiled the kernel with the
+	  "-g" option to preserve debugging information. It is mainly used
+	  for examining kernel data structures on the live kernel so if you
+	  don't understand what this means or are not a kernel hacker, just
+	  leave it at its default value ELF.
+
+config KCORE_AOUT
+	bool "A.OUT"
+	help
+	  Not necessary unless you're using a very out-of-date binutils
+	  version.  You probably want KCORE_ELF.
+
+endchoice
+
+source "fs/Kconfig.binfmt"
+
+config PREEMPT
+	bool "Preemptible Kernel (EXPERIMENTAL)"
+	depends on CPU_32 && EXPERIMENTAL
+	help
+	  This option reduces the latency of the kernel when reacting to
+	  real-time or interactive events by allowing a low priority process to
+	  be preempted even if it is in kernel mode executing a system call.
+	  This allows applications to run more reliably even when the system is
+	  under load.
+
+	  Say Y here if you are building a kernel for a desktop, embedded
+	  or real-time system.  Say N if you are unsure.
+
+config ARTHUR
+	tristate "RISC OS personality"
+	depends on CPU_32
+	help
+	  Say Y here to include the kernel code necessary if you want to run
+	  Acorn RISC OS/Arthur binaries under Linux. This code is still very
+	  experimental; if this sounds frightening, say N and sleep in peace.
+	  You can also say M here to compile this support as a module (which
+	  will be called arthur).
+
+config CMDLINE
+	string "Default kernel command string"
+	default ""
+	help
+	  On some architectures (EBSA110 and CATS), there is currently no way
+	  for the boot loader to pass arguments to the kernel. For these
+	  architectures, you should supply some command-line options at build
+	  time by entering them here. As a minimum, you should specify the
+	  memory size and the root device (e.g., mem=64M root=/dev/nfs).
+
+endmenu
+
+source "drivers/base/Kconfig"
+
+source "drivers/parport/Kconfig"
+
+source "drivers/pnp/Kconfig"
+
+source "drivers/block/Kconfig"
+
+source "drivers/md/Kconfig"
+
+source "net/Kconfig"
+
+source "net/irda/Kconfig"
+
+source "drivers/ide/Kconfig"
+
+source "drivers/scsi/Kconfig"
+
+source "drivers/isdn/Kconfig"
+
+#
+# input before char - char/joystick depends on it. As does USB.
+#
+source "drivers/input/Kconfig"
+
+source "drivers/char/Kconfig"
+
+config KBDMOUSE
+	bool
+	depends on ARCH_ACORN && BUSMOUSE=y
+	default y
+
+source "drivers/media/Kconfig"
+
+source "fs/Kconfig"
+
+source "drivers/video/Kconfig"
+
+menu "Sound"
+	depends on ARCH_ACORN
+
+config SOUND
+	tristate "Sound card support"
+	---help---
+	  If you have a sound card in your computer, i.e. if it can say more
+	  than an occasional beep, say Y.  Be sure to have all the information
+	  about your sound card and its configuration down (I/O port,
+	  interrupt and DMA channel), because you will be asked for it.
+
+	  You want to read the Sound-HOWTO, available from
+	  <http://www.linuxdoc.org/docs.html#howto>. General information about
+	  the modular sound system is contained in the files
+	  <file:Documentation/sound/Introduction>.  The file
+	  <file:Documentation/sound/README.OSS> contains some slightly
+	  outdated but still useful information as well.
+
+	  If you have a PnP sound card and you want to configure it at boot
+	  time using the ISA PnP tools (read
+	  <http://www.roestock.demon.co.uk/isapnptools/>), then you need to
+	  compile the sound card support as a module ( = code which can be
+	  inserted in and removed from the running kernel whenever you want)
+	  and load that module after the PnP configuration is finished.  To do
+	  this, say M here and read <file:Documentation/modules.txt> as well
+	  as <file:Documentation/sound/README.modules>; the module will be
+	  called soundcore.
+
+	  I'm told that even without a sound card, you can make your computer
+	  say more than an occasional beep, by programming the PC speaker.
+	  Kernel patches and supporting utilities to do that are in the pcsp
+	  package, available at <ftp://ftp.infradead.org/pub/pcsp/>.
+
+source "sound/Kconfig"
+
+endmenu
+
+source "drivers/misc/Kconfig"
+
+source "drivers/usb/Kconfig"
+
+source "net/bluetooth/Kconfig"
+
+
+menu "Kernel hacking"
+
+# RMK wants arm kernels compiled with frame pointers so hardwire this to y.
+# If you know what you are doing and are willing to live without stack
+# traces, you can get a slightly smaller kernel by setting this option to
+# n, but then RMK will have to kill you ;).
+config FRAME_POINTER
+	bool
+	default y
+	help
+	  If you say N here, the resulting kernel will be slightly smaller and
+	  faster. However, when a problem occurs with the kernel, the
+	  information that is reported is severely limited. Most people
+	  should say Y here.
+
+config DEBUG_USER
+	bool "Verbose user fault messages"
+	help
+	  When a user program crashes due to an exception, the kernel can
+	  print a brief message explaining what the problem was. This is
+	  sometimes helpful for debugging but serves no purpose on a
+	  production system. Most people should say N here.
+
+config DEBUG_INFO
+	bool "Include GDB debugging information in kernel binary"
+	help
+	  Say Y here to include source-level debugging information in the
+	  `vmlinux' binary image. This is handy if you want to use gdb or
+	  addr2line to debug the kernel. It has no impact on the in-memory
+	  footprint of the running kernel but it can increase the amount of
+	  time and disk space needed for compilation of the kernel. If in
+	  doubt say N.
+
+config DEBUG_KERNEL
+	bool "Kernel debugging"
+	help
+	  Say Y here if you are developing drivers or trying to debug and
+	  identify kernel problems.
+
+config DEBUG_SLAB
+	bool "Debug memory allocations"
+	depends on DEBUG_KERNEL
+	help
+	  Say Y here to have the kernel do limited verification on memory
+	  allocation as well as poisoning memory on free to catch use of freed
+	  memory.
+
+config MAGIC_SYSRQ
+	bool "Magic SysRq key"
+	depends on DEBUG_KERNEL
+	help
+	  If you say Y here, you will have some control over the system even
+	  if the system crashes for example during kernel debugging (e.g., you
+	  will be able to flush the buffer cache to disk, reboot the system
+	  immediately or dump some status information). This is accomplished
+	  by pressing various keys while holding SysRq (Alt+PrintScreen). It
+	  also works on a serial console (on PC hardware at least), if you
+	  send a BREAK and then within 5 seconds a command keypress. The
+	  keys are documented in <file:Documentation/sysrq.txt>. Don't say Y
+	  unless you really know what this hack does.
+
+config DEBUG_SPINLOCK
+	bool "Spinlock debugging"
+	depends on DEBUG_KERNEL
+	help
+	  Say Y here and build SMP to catch missing spinlock initialization
+	  and certain other kinds of spinlock errors commonly made.  This is
+	  best used in conjunction with the NMI watchdog so that spinlock
+	  deadlocks are also debuggable.
+
+config DEBUG_WAITQ
+	bool "Wait queue debugging"
+	depends on DEBUG_KERNEL
+
+config DEBUG_BUGVERBOSE
+	bool "Verbose BUG() reporting (adds 70K)"
+	depends on DEBUG_KERNEL
+	help
+	  Say Y here to make BUG() panics output the file name and line number
+	  of the BUG call as well as the EIP and oops trace.  This aids
+	  debugging but costs about 70-100K of memory.
+
+config DEBUG_ERRORS
+	bool "Verbose kernel error messages"
+	depends on DEBUG_KERNEL
+	help
+	  This option controls verbose debugging information which can be
+	  printed when the kernel detects an internal error. This debugging
+	  information is useful to kernel hackers when tracking down problems,
+	  but mostly meaningless to other people. It's safe to say Y unless
+	  you are concerned with the code size or don't want to see these
+	  messages.
+
+config KALLSYMS
+	bool "Load all symbols for debugging/kksymoops"
+	depends on DEBUG_KERNEL
+	help
+	  Say Y here to let the kernel print out symbolic crash information and
+	  symbolic stack backtraces. This increases the size of the kernel
+	  somewhat, as all symbols have to be loaded into the kernel image.
+
+# These options are only for real kernel hackers who want to get their hands dirty. 
+config DEBUG_LL
+	bool "Kernel low-level debugging functions"
+	depends on DEBUG_KERNEL
+	help
+	  Say Y here to include definitions of printascii, printchar, printhex
+	  in the kernel.  This is helpful if you are debugging code that
+	  executes before the console is initialized.
+
+endmenu
+
+source "security/Kconfig"
+
+source "crypto/Kconfig"
+
+source "lib/Kconfig"
+
