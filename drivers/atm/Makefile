@@ -1,0 +1,70 @@
+#
+# Makefile for the Linux network (ATM) device drivers.
+#
+
+EXTRA_CFLAGS := -g
+
+export-objs	:= uPD98402.o suni.o idt77105.o
+fore_200e-objs	:= fore200e.o
+host-progs	:= fore200e_mkfirm
+
+# Files generated that shall be removed upon make clean
+clean-files := {atmsar11,pca200e,pca200e_ecd,sba200e_ecd}.{bin,bin1,bin2}
+# Firmware generated that shall be removed upon make clean
+clean-files += fore200e_pca_fw.c fore200e_sba_fw.c
+
+obj-$(CONFIG_ATM_ZATM)		+= zatm.o uPD98402.o
+obj-$(CONFIG_ATM_NICSTAR)	+= nicstar.o
+obj-$(CONFIG_ATM_AMBASSADOR)	+= ambassador.o
+obj-$(CONFIG_ATM_HORIZON)	+= horizon.o
+obj-$(CONFIG_ATM_IA)		+= iphase.o suni.o
+obj-$(CONFIG_ATM_FORE200E)	+= fore_200e.o
+obj-$(CONFIG_ATM_ENI)		+= eni.o suni.o
+obj-$(CONFIG_ATM_IDT77252)	+= idt77252.o
+
+ifeq ($(CONFIG_ATM_NICSTAR_USE_SUNI),y)
+  obj-$(CONFIG_ATM_NICSTAR)	+= suni.o
+endif
+ifeq ($(CONFIG_ATM_NICSTAR_USE_IDT77105),y)
+  obj-$(CONFIG_ATM_NICSTAR)	+= idt77105.o
+endif
+ifeq ($(CONFIG_ATM_IDT77252_USE_SUNI),y)
+  obj-$(CONFIG_ATM_IDT77252)	+= suni.o
+endif
+
+obj-$(CONFIG_ATM_TCP)		+= atmtcp.o
+obj-$(CONFIG_ATM_FIRESTREAM)	+= firestream.o
+obj-$(CONFIG_ATM_LANAI)		+= lanai.o
+
+ifeq ($(CONFIG_ATM_FORE200E_PCA),y)
+  fore_200e-objs		+= fore200e_pca_fw.o
+  # guess the target endianess to choose the right PCA-200E firmware image
+  ifeq ($(CONFIG_ATM_FORE200E_PCA_DEFAULT_FW),y)
+    CONFIG_ATM_FORE200E_PCA_FW = $(shell if test -n "`$(CC) -E -dM $(src)/../../include/asm/byteorder.h | grep ' __LITTLE_ENDIAN '`"; then echo $(obj)/pca200e.bin; else echo $(obj)/pca200e_ecd.bin2; fi)
+  endif
+endif
+
+ifeq ($(CONFIG_ATM_FORE200E_SBA),y)
+  fore_200e-objs		+= fore200e_sba_fw.o
+  ifeq ($(CONFIG_ATM_FORE200E_SBA_DEFAULT_FW),y)
+    CONFIG_ATM_FORE200E_SBA_FW	:= sba200e_ecd.bin2
+  endif
+endif
+
+include $(TOPDIR)/Rules.make
+
+# FORE Systems 200E-series firmware magic
+$(obj)/fore200e_pca_fw.c: $(patsubst "%", %, $(CONFIG_ATM_FORE200E_PCA_FW)) \
+			  $(obj)/fore200e_mkfirm
+	$(obj)/fore200e_mkfirm -k -b _fore200e_pca_fw \
+	  -i $(CONFIG_ATM_FORE200E_PCA_FW) -o $@
+
+$(obj)/fore200e_sba_fw.c: $(patsubst "%", %, $(CONFIG_ATM_FORE200E_SBA_FW)) \
+			  $(obj)/fore200e_mkfirm
+	$(obj)/fore200e_mkfirm -k -b _fore200e_sba_fw \
+	  -i $(CONFIG_ATM_FORE200E_SBA_FW) -o $@
+
+# deal with the various suffixes of the binary firmware images
+$(obj)/%.bin $(obj)/%.bin1 $(obj)/%.bin2: $(src)/%.data
+	objcopy -Iihex $< -Obinary $@.gz
+	gzip -df $@.gz
