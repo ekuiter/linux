@@ -1,0 +1,26 @@
+#
+# Security configuration
+#
+
+menu "Security options"
+
+config SECURITY
+	bool "Enable different security models"
+	help
+	  This allows you to choose different security modules to be
+	  configured into your kernel.
+
+	  If this option is not selected, the default Linux security
+	  model will be used.
+
+	  If you are unsure how to answer this question, answer N.
+
+config SECURITY_CAPABILITIES
+	tristate "Default Linux Capabilities"
+	depends on SECURITY!=n
+	help
+	  This enables the "default" Linux capabilities functionality.
+	  If you are unsure how to answer this question, answer Y.
+
+endmenu
+
