@@ -1,0 +1,27 @@
+#
+# ia64/boot/Makefile
+#
+# This file is subject to the terms and conditions of the GNU General Public
+# License.  See the file "COPYING" in the main directory of this archive
+# for more details.
+#
+# Copyright (C) 1998 by David Mosberger-Tang <davidm@hpl.hp.com>
+#
+
+LINKFLAGS = -static -T $(src)/bootloader.lds
+
+OBJS	= $(obj)/bootloader.o
+
+targets-$(CONFIG_IA64_HP_SIM)	+= bootloader
+targets-$(CONFIG_IA64_GENERIC)	+= bootloader
+
+CFLAGS	:= $(CFLAGS) $(CFLAGS_KERNEL)
+
+all:	$(targets-y)
+
+bootloader: $(OBJS)
+	$(LD) $(LINKFLAGS) $(OBJS) $(TOPDIR)/lib/lib.a $(TOPDIR)/arch/$(ARCH)/lib/lib.a \
+	-o bootloader
+
+clean:
+	rm -f $(TARGETS)

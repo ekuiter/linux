@@ -1,0 +1,47 @@
+#
+# Makefile for the linux kernel.
+#
+
+ENTRY_OBJ = entry-$(PROCESSOR).o
+
+AFLAGS_head.o := -DTEXTADDR=$(TEXTADDR)
+
+# Object file lists.
+
+obj-y		:= arch.o compat.o dma.o $(ENTRY_OBJ) entry-common.o irq.o   \
+		   process.o ptrace.o semaphore.o setup.o signal.o sys_arm.o \
+		   time.o traps.o
+obj-m		:=
+obj-n		:=
+obj-		:=
+
+export-objs	:= armksyms.o apm.o dma.o ecard.o fiq.o io.o time.o
+
+obj-$(CONFIG_APM)		+= apm.o
+obj-$(CONFIG_ARCH_ACORN)	+= ecard.o time-acorn.o
+obj-$(CONFIG_ARCH_CLPS7500)	+= time-acorn.o
+obj-$(CONFIG_FOOTBRIDGE)	+= isa.o
+obj-$(CONFIG_FIQ)		+= fiq.o
+obj-$(CONFIG_MODULES)		+= armksyms.o module.o
+obj-$(CONFIG_ARTHUR)		+= arthur.o
+obj-$(CONFIG_ISA_DMA)		+= dma-isa.o
+obj-$(CONFIG_PCI)		+= bios32.o
+obj-$(CONFIG_PCI_HOST_PLX90X0)	+= plx90x0.o
+obj-$(CONFIG_PCI_HOST_VIA82C505) += via82c505.o
+
+ifneq ($(MACHINE),ebsa110)
+  obj-y		+= io.o
+endif
+
+ifeq ($(CONFIG_CPU_32),y)
+head-y			:= head.o
+obj-$(CONFIG_DEBUG_LL)	+= debug.o
+endif
+
+EXTRA_TARGETS := $(head-y) init_task.o
+
+# Spell out some dependencies that `make dep' doesn't spot
+$(obj)/entry-armv.o: 	$(obj)/entry-header.S include/asm-arm/constants.h
+$(obj)/entry-armo.o: 	$(obj)/entry-header.S include/asm-arm/constants.h
+$(obj)/entry-common.o: 	$(obj)/entry-header.S include/asm-arm/constants.h \
+			$(obj)/calls.S
