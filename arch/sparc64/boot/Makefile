@@ -1,0 +1,26 @@
+# $Id: Makefile,v 1.4 1997/12/15 20:08:56 ecd Exp $
+# Makefile for the Sparc64 boot stuff.
+#
+# Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+# Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+
+ROOT_IMG	:= /usr/src/root.img
+ELFTOAOUT	:= elftoaout
+
+host-progs    := piggyback
+EXTRA_TARGETS := tftpboot.img vmlinux.aout
+
+quiet_cmd_elftoaout = ELT2AOUT $@
+      cmd_elftoaout = $(ELFTOAOUT) vmlinux -o $@
+quiet_cmd_piggy     = PIGGY    $@
+      cmd_piggy     = $(obj)/piggyback $@ System.map $(ROOT_IMG)
+
+$(obj)/tftpboot.img: $(obj)/piggyback System.map vmlinux $(ROOT_IMG) FORCE
+	$(call if_changed,elftoaout)
+	$(call if_changed,piggy)
+	@echo '  kernel: $@ is ready'
+
+$(obj)/vmlinux.aout: vmlinux FORCE
+	$(call if_changed,elftoaout)
+	@echo '  kernel: $@ is ready'
+
