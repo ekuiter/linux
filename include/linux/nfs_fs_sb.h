@@ -1,0 +1,48 @@
+#ifndef _NFS_FS_SB
+#define _NFS_FS_SB
+
+#include <linux/list.h>
+
+/*
+ * NFS client parameters stored in the superblock.
+ */
+struct nfs_server {
+	struct rpc_clnt *	client;		/* RPC client handle */
+	struct nfs_rpc_ops *	rpc_ops;	/* NFS protocol vector */
+	int			flags;		/* various flags */
+	unsigned int		caps;		/* server capabilities */
+	unsigned int		rsize;		/* read size */
+	unsigned int		rpages;		/* read size (in pages) */
+	unsigned int		wsize;		/* write size */
+	unsigned int		wpages;		/* write size (in pages) */
+	unsigned int		dtsize;		/* readdir size */
+	unsigned int		bsize;		/* server block size */
+	unsigned int		acregmin;	/* attr cache timeouts */
+	unsigned int		acregmax;
+	unsigned int		acdirmin;
+	unsigned int		acdirmax;
+	unsigned int		namelen;
+	char *			hostname;	/* remote hostname */
+	struct nfs_reqlist *	rw_requests;	/* async read/write requests */
+	struct list_head	lru_read,
+				lru_dirty,
+				lru_commit,
+				lru_busy;
+	struct nfs_fh		fh;
+	struct sockaddr_in	addr;
+#if CONFIG_NFS_V4
+	/* Our own IP address, as a null-terminated string.
+	 * This is used to generate the clientid, and the callback address.
+	 */
+	char			ip_addr[16];
+	char *			mnt_path;
+	struct nfs4_client *	nfs4_state;	/* all NFSv4 state starts here */
+	unsigned long		lease_time;	/* in jiffies */
+	unsigned long		last_renewal;	/* in jiffies */
+#endif
+};
+
+/* Server capabilities */
+#define NFS_CAP_READDIRPLUS	(1)
+
+#endif

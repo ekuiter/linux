@@ -1,0 +1,13 @@
+#
+# Makefile for the Linux AppleTalk layer.
+#
+
+export-objs = ddp.o
+
+obj-$(CONFIG_ATALK) += appletalk.o
+
+appletalk-y			:= aarp.o ddp.o atalk_proc.o
+appletalk-$(CONFIG_SYSCTL)	+= sysctl_net_atalk.o
+
+include $(TOPDIR)/Rules.make
+
