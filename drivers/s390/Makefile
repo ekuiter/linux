@@ -1,0 +1,11 @@
+#
+# Makefile for the S/390 specific device drivers
+#
+
+obj-y += s390mach.o sysinfo.o
+obj-y += cio/ block/ char/ misc/ net/
+
+drivers-y += drivers/s390/built-in.o
+
+include $(TOPDIR)/Rules.make
+
